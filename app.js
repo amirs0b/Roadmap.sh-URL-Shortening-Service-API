@@ -7,6 +7,7 @@ import {catchError, HandleERROR} from "vanta-api";
 import exportValidation from "./Middlewares/ExportValidation.js";
 import authRouter from "./Routes/Auth.js";
 import userRouter from "./Routes/User.js";
+import urlRouter from "./Routes/Url.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,6 +24,7 @@ app.use(exportValidation);
 
 
 app.use("/api/users", userRouter);
+app.use("/api/url",urlRouter)
 
 
 app.use((res, req, next) => {
