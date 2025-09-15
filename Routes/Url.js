@@ -10,14 +10,14 @@ import isLogin from "../Middlewares/IsLogin.js";
 
 const urlRouter = express.Router();
 
-urlRouter.route("/:shortCode").get(getShortUrl);
+urlRouter.route("/:shortUrl").get(getShortUrl);
 urlRouter.route("/")
     .post(isLogin, createShortUrl)
     .get(isLogin, getUserUrls);
 
-urlRouter.route("/:shortCode/stats").get(isLogin, getUrlStats);
+urlRouter.route("/:shortUrl/stats").get(isLogin, getUrlStats);
 
-urlRouter.route("/:shortCode/manage")
+urlRouter.route("/:shortUrl/manage")
     .patch(isLogin, updateUrl)
     .delete(isLogin, deleteUrl);
 

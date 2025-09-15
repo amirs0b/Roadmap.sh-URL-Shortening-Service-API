@@ -6,7 +6,7 @@ const options = {
         info: {
             title: "URL Shortener API",
             version: "1.0.0",
-            description: "A simple and efficient URL shortening service API built with Node.js, Express, and MongoDB. This API allows users to create, manage, and track short URLs.",
+            description: "A simple and efficient URL shortening service built with Node.js and Express.",
         },
         servers: [
             {
@@ -14,100 +14,12 @@ const options = {
                 description: "Development server"
             },
         ],
-        components: {
-            securitySchemes: {
-                bearerAuth: {
-                    type: "http",
-                    scheme: "bearer",
-                    bearerFormat: "JWT",
-                    description: "Enter your JWT token in the format: Bearer {token}"
-                },
-            },
-            schemas: {
-                Url: {
-                    type: "object",
-                    properties: {
-                        _id: {
-                            type: "string",
-                            example: "60d21b4667d0d8992e610c8b"
-                        },
-                        originalUrl: {
-                            type: "string",
-                            example: "https://www.google.com/very/long/path/to/resource"
-                        },
-                        shortCode: {
-                            type: "string",
-                            example: "a1b2c3"
-                        },
-                        clicks: {
-                            type: "integer",
-                            example: 42
-                        },
-                        user: {
-                            type: "string",
-                            description: "ID of the user who created the URL.",
-                            example: "60d0fe4f5311236168a109ca"
-                        },
-                        createdAt: {
-                            type: "string",
-                            format: "date-time"
-                        },
-                        updatedAt: {
-                            type: "string",
-                            format: "date-time"
-                        }
-                    }
-                },
-                User: {
-                    type: "object",
-                    properties: {
-                        _id: {
-                            type: "string",
-                            example: "60d0fe4f5311236168a109ca"
-                        },
-                        username: {
-                            type: "string",
-                            example: "testuser"
-                        },
-                        role: {
-                            type: "string",
-                            enum: ["user", "admin"],
-                            example: "user"
-                        },
-                    }
-                }
-            }
-        },
         paths: {
-            // Auth Paths
+            // AUTHENTICATION PATHS
             "/api/auth/register": {
                 post: {
                     summary: "Register a new user",
-                    tags: ["Auth"],
-                    requestBody: {
-                        required: true,
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    type: "object",
-                                    properties: {
-                                        username: { type: "string", example: "newuser" },
-                                        password: { type: "string", example: "Password123" }
-                                    },
-                                    required: ["username", "password"]
-                                }
-                            }
-                        }
-                    },
-                    responses: {
-                        "201": { description: "User registered successfully" },
-                        "400": { description: "Bad Request (e.g., missing fields, weak password)" }
-                    }
-                }
-            },
-            "/api/auth": {
-                post: {
-                    summary: "Log in a user",
+                    description: "Creates a new user account with a username and password.",
                     tags: ["Auth"],
                     requestBody: {
                         required: true,
@@ -117,57 +29,51 @@ const options = {
                                     type: "object",
                                     properties: {
                                         username: { type: "string", example: "testuser" },
-                                        password: { type: "string", example: "Password123" }
+                                        password: { type: "string", example: "Password123!" },
                                     },
-                                    required: ["username", "password"]
-                                }
-                            }
-                        }
+                                    required: ["username", "password"],
+                                },
+                            },
+                        },
                     },
                     responses: {
-                        "200": {
-                            description: "Login successful, returns token and user info",
-                            content: {
-                                "application/json": {
-                                    schema: {
-                                        type: "object",
-                                        properties: {
-                                            success: { type: "boolean", example: true },
-                                            message: { type: "string", example: "Login successful" },
-                                            data: {
-                                                type: "object",
-                                                properties: {
-                                                    token: { type: "string" },
-                                                    user: { "$ref": "#/components/schemas/User" }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "401": { description: "Invalid username or password" }
-                    }
-                }
+                        "201": { description: "User registered successfully" },
+                        "400": { description: "Bad Request - Missing fields or invalid password format" },
+                    },
+                },
             },
-            // URL Paths
-            "/{shortCode}": {
-                get: {
-                    summary: "Redirect to Original URL",
-                    tags: ["URL"],
-                    description: "This is the primary public endpoint. It finds the original URL by its short code, increments the click count, and performs a 302 redirect.",
-                    parameters: [
-                        { name: "shortCode", in: "path", required: true, schema: { type: "string" }, example: "a1b2c3" }
-                    ],
-                    responses: {
-                        "302": { description: "Redirecting to the original URL." },
-                        "404": { description: "Short URL not found." }
-                    }
-                }
-            },
-            "/api/url": {
+            "/api/auth/": {
                 post: {
-                    summary: "Create a new Short URL",
+                    summary: "User login",
+                    description: "Authenticates a user and returns a JWT token.",
+                    tags: ["Auth"],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        username: { type: "string", example: "testuser" },
+                                        password: { type: "string", example: "Password123!" },
+                                    },
+                                    required: ["username", "password"],
+                                },
+                            },
+                        },
+                    },
+                    responses: {
+                        "200": { description: "Login successful" },
+                        "400": { description: "Bad Request - User not found or password incorrect" },
+                    },
+                },
+            },
+
+            // URL PATHS
+            "/api/url/": {
+                post: {
+                    summary: "Create a new short URL",
+                    description: "Creates a new short URL for the authenticated user.",
                     tags: ["URL"],
                     security: [{ bearerAuth: [] }],
                     requestBody: {
@@ -177,60 +83,68 @@ const options = {
                                 schema: {
                                     type: "object",
                                     properties: {
-                                        originalUrl: { type: "string", example: "https://www.example.com/a-very-long-url-to-be-shortened" }
+                                        originalUrl: { type: "string", example: "https://www.google.com/very/long/path/to/resource" },
                                     },
-                                    required: ["originalUrl"]
-                                }
-                            }
-                        }
+                                    required: ["originalUrl"],
+                                },
+                            },
+                        },
                     },
                     responses: {
-                        "201": {
-                            description: "Short URL created successfully.",
-                            content: { "application/json": { schema: { "$ref": "#/components/schemas/Url" } } }
-                        },
-                        "400": { description: "Bad Request (e.g., missing originalUrl)" },
-                        "401": { description: "Unauthorized" }
-                    }
+                        "201": { description: "Short URL created successfully" },
+                        "400": { description: "Bad Request - Original URL is required" },
+                        "401": { description: "Unauthorized - Invalid or missing token" },
+                    },
                 },
                 get: {
-                    summary: "Get All URLs for User",
+                    summary: "Get all URLs for the current user",
+                    description: "Retrieves a list of all short URLs created by the authenticated user.",
                     tags: ["URL"],
                     security: [{ bearerAuth: [] }],
                     responses: {
-                        "200": {
-                            description: "A list of the user's shortened URLs.",
-                            content: { "application/json": { schema: { type: "array", items: { "$ref": "#/components/schemas/Url" } } } }
-                        },
-                        "401": { description: "Unauthorized" }
-                    }
+                        "200": { description: "A list of the user's URLs" },
+                        "401": { description: "Unauthorized - Invalid or missing token" },
+                    },
                 }
             },
-            "/api/url/{shortCode}/stats": {
+            "/api/url/{shortUrl}": {
                 get: {
-                    summary: "Get URL Statistics",
+                    summary: "Redirect to original URL",
+                    description: "Redirects the user to the original long URL associated with the short URL and increments the click count. This endpoint is public.",
                     tags: ["URL"],
-                    security: [{ bearerAuth: [] }],
                     parameters: [
-                        { name: "shortCode", in: "path", required: true, schema: { type: "string" }, example: "a1b2c3" }
+                        { name: "shortUrl", in: "path", required: true, schema: { type: "string", example: "a1b2c3" } },
                     ],
                     responses: {
-                        "200": {
-                            description: "Statistics for the short URL.",
-                            content: { "application/json": { schema: { "$ref": "#/components/schemas/Url" } } }
-                        },
-                        "401": { description: "Unauthorized" },
-                        "404": { description: "Short URL not found" }
-                    }
+                        "302": { description: "Redirecting to the original URL" },
+                        "404": { description: "URL not found" },
+                    },
                 }
             },
-            "/api/url/{shortCode}/manage": {
-                patch: {
-                    summary: "Update a Short URL",
+            "/api/url/{shortUrl}/stats": {
+                get: {
+                    summary: "Get URL statistics",
+                    description: "Retrieves statistics for a specific short URL, including click count.",
                     tags: ["URL"],
                     security: [{ bearerAuth: [] }],
                     parameters: [
-                        { name: "shortCode", in: "path", required: true, schema: { type: "string" }, example: "a1b2c3" }
+                        { name: "shortUrl", in: "path", required: true, schema: { type: "string", example: "a1b2c3" } },
+                    ],
+                    responses: {
+                        "200": { description: "Statistics for the URL" },
+                        "401": { description: "Unauthorized - Invalid or missing token" },
+                        "404": { description: "URL not found" },
+                    },
+                }
+            },
+            "/api/url/{shortUrl}/manage": {
+                patch: {
+                    summary: "Update a short URL",
+                    description: "Updates the original URL that a short URL points to. Can be done by the owner or an admin.",
+                    tags: ["URL"],
+                    security: [{ bearerAuth: [] }],
+                    parameters: [
+                        { name: "shortUrl", in: "path", required: true, schema: { type: "string", example: "a1b2c3" } },
                     ],
                     requestBody: {
                         required: true,
@@ -239,42 +153,51 @@ const options = {
                                 schema: {
                                     type: "object",
                                     properties: {
-                                        originalUrl: { type: "string", example: "https://www.new-updated-link.com" }
+                                        originalUrl: { type: "string", example: "https://www.an-updated-url.com" },
                                     },
-                                    required: ["originalUrl"]
-                                }
-                            }
-                        }
+                                    required: ["originalUrl"],
+                                },
+                            },
+                        },
                     },
                     responses: {
-                        "200": {
-                            description: "URL updated successfully.",
-                            content: { "application/json": { schema: { "$ref": "#/components/schemas/Url" } } }
-                        },
-                        "401": { description: "Unauthorized" },
-                        "403": { description: "Forbidden (user does not own this URL)" },
-                        "404": { description: "Short URL not found" }
-                    }
+                        "200": { description: "URL updated successfully" },
+                        "400": { description: "Bad Request - New original URL is required" },
+                        "401": { description: "Unauthorized - Invalid or missing token" },
+                        "403": { description: "Forbidden - User is not authorized" },
+                        "404": { description: "URL not found" },
+                    },
                 },
                 delete: {
-                    summary: "Delete a Short URL",
+                    summary: "Delete a short URL",
+                    description: "Deletes a short URL. Can be done by the owner or an admin.",
                     tags: ["URL"],
                     security: [{ bearerAuth: [] }],
                     parameters: [
-                        { name: "shortCode", in: "path", required: true, schema: { type: "string" }, example: "a1b2c3" }
+                        { name: "shortUrl", in: "path", required: true, schema: { type: "string", example: "a1b2c3" } },
                     ],
                     responses: {
-                        "200": { description: "URL deleted successfully." },
-                        "401": { description: "Unauthorized" },
-                        "403": { description: "Forbidden (user does not own this URL)" },
-                        "404": { description: "Short URL not found" }
-                    }
+                        "200": { description: "URL deleted successfully" },
+                        "401": { description: "Unauthorized - Invalid or missing token" },
+                        "403": { description: "Forbidden - User is not authorized" },
+                        "404": { description: "URL not found" },
+                    },
                 }
             }
-        }
+        },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
+                },
+            },
+        },
     },
     apis: ["./Routes/*.js"],
 };
 
 const swaggerDocs = swaggerJSDoc(options);
 export default swaggerDocs;
+
