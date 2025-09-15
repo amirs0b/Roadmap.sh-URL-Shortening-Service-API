@@ -8,6 +8,8 @@ import exportValidation from "./Middlewares/ExportValidation.js";
 import authRouter from "./Routes/Auth.js";
 import userRouter from "./Routes/User.js";
 import urlRouter from "./Routes/Url.js";
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocs from './swagger.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +27,9 @@ app.use(exportValidation);
 
 app.use("/api/users", userRouter);
 app.use("/api/url",urlRouter)
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+
 
 
 app.use((res, req, next) => {

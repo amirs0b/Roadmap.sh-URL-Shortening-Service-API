@@ -7,14 +7,15 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 6);
 
 
 export const createShortUrl = catchAsync(async (req, res, next) => {
-    const {OriginalUrl} = req.body;
+    const {originalUrl} = req.body;
     const userId = req.userId
+    console.log(req.body);
 
-    if (!OriginalUrl) {
+    if (!originalUrl) {
         return next(new HandleERROR("Original URL is required", 400))
     }
     const shortUrl = nanoid();
-    const newUrl = new Url({OriginalUrl, shortUrl, userId});
+    const newUrl = new Url({originalUrl, shortUrl, userId});
     await newUrl.save();
     res.status(201).json({
         status: "success",
@@ -98,20 +99,31 @@ export const deleteUrl = catchAsync(async (req, res, next) => {
 
 
 export const updateUrl = catchAsync(async (req, res, next) => {
-    if (req?.role !== "admin" || req?.userId !== req?.params?.id) {
-        return next(new HandleERROR("You are not authorized to update this URL", 403));
+    const { shortUrl } = req.params;
+    const { originalUrl } = req.body;
+    const userId = req.userId;
+
+    if (!originalUrl) {
+        return next(new HandleERROR("A new original URL is required", 400));
     }
-    const {shortUrl} = req.params;
-    const url = await Url.findOne({shortUrl});
+
+    const url = await Url.findOne({ shortUrl });
+    console.log(url)
+
     if (!url) {
         return next(new HandleERROR("URL not found", 404));
     }
-    url.originalUrl = req.body.originalUrl ;
+
+    if (url.userId.toString() !== userId && req.role !== 'admin') {
+        return next(new HandleERROR("You are not authorized to update this URL", 403));
+    }
+
+    url.originalUrl = originalUrl;
     const updatedUrl = await url.save();
+
     return res.status(200).json({
         success: true,
         message: "URL updated successfully",
         data: updatedUrl
     });
-
-})
+});

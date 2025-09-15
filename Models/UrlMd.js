@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 const urlSchema = new mongoose.Schema({
-    longUrl: {
+    originalUrl: {
         type: String,
         required: [true,"Orginal URL is required"]
     },
