@@ -55,7 +55,6 @@ export const getUserUrls = catchAsync(async (req, res, next) => {
         .populate();
 
     const result = await features.execute();
-
     res.status(200).json({
         success: true,
         data: result,
@@ -64,6 +63,7 @@ export const getUserUrls = catchAsync(async (req, res, next) => {
 
 export const getUrlStats = catchAsync(async (req, res, next) => {
     const {shortUrl} = req.params;
+
 
     const url = await Url.findOne({shortUrl});
 
@@ -78,33 +78,29 @@ export const getUrlStats = catchAsync(async (req, res, next) => {
 });
 
 export const deleteUrl = catchAsync(async (req, res, next) => {
-    const { shortCode } = req.params;
+    const {shortUrl} = req.params;
     const userId = req.userId;
 
-
-    const url = await Url.findOne({ shortCode });
+    const url = await Url.findOne({shortUrl});
 
     if (!url) {
         return next(new HandleERROR("URL not found", 404));
     }
-    console.log(req.role);
+
     if (url.userId.toString() !== userId && req.role !== 'admin') {
         return next(new HandleERROR("You are not authorized to delete this URL", 403));
     }
-
-
-    await Url.deleteOne({ shortCode });
-
+    await Url.deleteOne({shortUrl});
     res.status(200).json({
         success: true,
         message: "URL deleted successfully",
     });
 });
 
+
 export const updateUrl = catchAsync(async (req, res, next) => {
-    const { shortUrl } = req.params;
-    // console.log(shortUrl)
-    const { originalUrl } = req.body;
+    const {shortUrl} = req.params;
+    const {originalUrl} = req.body;
     console.log("start body")
     console.log(req.body);
     console.log("end body")
@@ -117,7 +113,7 @@ export const updateUrl = catchAsync(async (req, res, next) => {
         return next(new HandleERROR("A new original URL is required", 400));
     }
 
-    const url = await Url.findOne({ shortUrl });
+    const url = await Url.findOne({shortUrl});
 
     if (!url) {
         return next(new HandleERROR("URL not found", 404));
